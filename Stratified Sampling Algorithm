@@ -1,0 +1,36 @@
+# Set the desired training data proportion (80%).
+propTraining = .8
+# Calculate the total number of training samples to pre-allocate array size.
+nTraining = int(len(labels)*propTraining)
+# Create the final boolean mask for efficient data selection.
+traintestBool = np.zeros(len(labels), dtype=bool)
+
+# --- Stratified Sampling Algorithm ---
+
+# Get all unique classes to loop through them.
+uniquelabels = torch.unique(labels)
+labelsSize = len(uniquelabels)
+# Pre-allocate array to hold the indices of training samples.
+items2use4train = np.zeros(nTraining, dtype=int)
+# This counter tracks our insertion point in the `items2use4train` array.
+index_counter = 0
+
+# Loop through each class index (assumes labels are 0, 1, 2...).
+for i in range(labelsSize):
+
+  # Calculate the number of training samples needed for this specific class.
+  samplesPerClass = int(len(np.where(labels==i)[0])*.8)
+
+  # Define the slice (start and end points) for this class's indices.
+  a = index_counter
+  b = index_counter + samplesPerClass
+
+  # Randomly select indices for this class and place them into the master list.
+  items2use4train[a:b] = np.random.choice(np.where(labels==i)[0],
+                                      samplesPerClass, replace=False)
+
+  # CRITICAL: Update the counter to the end of the last slice for the next loop.
+  index_counter = b
+
+# Use the final list of indices to create the boolean mask.
+traintestBool[items2use4train] = True
